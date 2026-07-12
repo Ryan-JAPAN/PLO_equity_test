@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e3b2a">
+<title>PLO エクイティトレーナー</title>
+<style>
+  :root {
+    --bg: #0e3b2a;
+    --bg-soft: #155138;
+    --surface: #1c6a48;
+    --surface-2: #f7f3e8;
+    --ink: #f7f3e8;
+    --ink-dark: #1a1a1a;
+    --muted: #b0c8b8;
+    --accent: #ffd24a;
+    --accent-strong: #ffb627;
+    --red: #d23a3a;
+    --green: #2faa6b;
+    --orange: #e07a1f;
+    --blue: #2f6fd2;
+    --shadow: 0 4px 12px rgba(0,0,0,.18);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;-webkit-font-smoothing:antialiased;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif}
+  body{
+    background:linear-gradient(180deg,var(--bg) 0%,#0a2e21 100%);
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:env(safe-area-inset-bottom);
+    overscroll-behavior:none;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+  /* ===== layout ===== */
+  .app{max-width:560px;margin:0 auto;padding:12px 14px 100px;position:relative}
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:12px;
+  }
+  .brand{
+    font-weight:700;font-size:16px;letter-spacing:.02em;
+    display:flex;align-items:center;gap:6px;
+  }
+  .brand-mark{
+    width:24px;height:24px;border-radius:6px;
+    background:var(--accent);color:var(--ink-dark);
+    display:grid;place-items:center;font-weight:900;font-size:13px;
+  }
+  .meta{
+    font-size:12px;color:var(--muted);
+    display:flex;gap:10px;align-items:center;
+  }
+  .meta b{color:var(--ink)}
+
+  /* ===== navigation tabs (bottom) ===== */
+  .nav{
+    position:fixed;left:0;right:0;bottom:0;
+    background:rgba(10,30,22,.96);backdrop-filter:blur(10px);
+    border-top:1px solid rgba(255,255,255,.08);
+    display:flex;justify-content:space-around;
+    padding:6px 0 calc(6px + env(safe-area-inset-bottom));
+    z-index:30;
+  }
+  .nav button{
+    color:var(--muted);font-size:11px;
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:8px 14px;border-radius:8px;
+  }
+  .nav button.active{color:var(--accent)}
+  .nav button .icon{font-size:18px;line-height:1}
+
+  /* ===== screens ===== */
+  .screen{display:none;animation:fade .2s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* ===== home ===== */
+  .hero{
+    background:linear-gradient(135deg,#1c6a48 0%,#2faa6b 100%);
+    border-radius:18px;padding:18px;box-shadow:var(--shadow);
+    margin-bottom:14px;
+  }
+  .hero h1{margin:0 0 6px;font-size:20px}
+  .hero p{margin:0;font-size:13px;color:rgba(255,255,255,.85);line-height:1.6}
+  .home-stats{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0;
+  }
+  .stat-card{
+    background:var(--bg-soft);border-radius:var(--radius);
+    padding:12px;text-align:center;
+  }
+  .stat-card .num{font-size:22px;font-weight:800;color:var(--accent)}
+  .stat-card .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+  .start-btn{
+    width:100%;background:var(--accent);color:var(--ink-dark);
+    font-size:17px;font-weight:800;padding:18px;border-radius:var(--radius);
+    box-shadow:var(--shadow);margin-bottom:10px;
+  }
+  .start-btn:active{transform:scale(.99)}
+  .difficulty{
+    background:var(--bg-soft);border-radius:var(--radius);
+    padding:12px;margin-bottom:10px;
+  }
+  .difficulty h3{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+  .seg{
+    display:flex;background:rgba(0,0,0,.18);border-radius:10px;padding:3px;gap:3px;
+  }
+  .seg button{
+    flex:1;padding:9px 4px;font-size:12px;font-weight:600;
+    color:var(--muted);border-radius:7px;
+  }
+  .seg button.on{background:var(--accent);color:var(--ink-dark)}
+
+  /* range sliders */
+  .range-block{margin-top:12px}
+  .range-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:12px;color:var(--muted);margin-bottom:2px;
+  }
+  .range-head b{color:var(--accent);font-size:15px;font-weight:800}
+  .range-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;
+    width:100%;height:30px;background:transparent;margin:0;padding:0;
+  }
+  input[type=range]:focus{outline:none}
+  input[type=range]::-webkit-slider-runnable-track{
+    height:6px;background:rgba(0,0,0,.28);border-radius:99px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:22px;height:22px;border-radius:50%;background:var(--accent);
+    margin-top:-8px;box-shadow:0 2px 5px rgba(0,0,0,.35);cursor:pointer;
+    border:2px solid #fff;
+  }
+  input[type=range]::-moz-range-track{
+    height:6px;background:rgba(0,0,0,.28);border-radius:99px;border:none;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;background:var(--accent);
+    border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.35);cursor:pointer;
+  }
+  .range-row{
+    display:flex;align-items:center;gap:8px;
+  }
+  .range-row .tick{font-size:10px;color:var(--muted);min-width:28px;text-align:center}
+  .range-pair{display:flex;flex-direction:column;gap:2px}
+
+  /* result hand row improvements */
+  .res-card{
+    background:var(--bg-soft);border-radius:var(--radius);
+    padding:12px;display:flex;flex-direction:column;gap:8px;
+  }
+  .res-card .top-line{display:flex;align-items:center;gap:8px}
+  .res-card .badge-rank{
+    width:30px;height:30px;border-radius:50%;
+    display:grid;place-items:center;font-weight:800;font-size:14px;
+    color:#fff;flex-shrink:0;
+  }
+  .res-card .eq{
+    margin-left:auto;font-size:18px;font-weight:800;color:var(--accent);
+  }
+  .res-card .info-row{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:var(--muted);
+  }
+  .res-card .pill{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:3px 8px;border-radius:99px;font-weight:700;font-size:11px;
+  }
+  .pill.ok{background:rgba(47,170,107,.22);color:#9ee5b8}
+  .pill.ng{background:rgba(210,58,58,.22);color:#f3a8a8}
+  .res-card .equity-bar{margin-top:0}
+  .res-card .label{color:var(--muted);font-size:11px}
+  .res-card .label b{color:var(--ink);font-weight:700;font-size:13px;margin-left:2px}
+  .header-stats{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--bg-soft);border-radius:10px;padding:8px 12px;
+    font-size:12px;margin-bottom:10px;
+  }
+  .header-stats .item b{color:var(--accent);font-size:14px;margin-right:2px}
+  .header-stats .item{color:var(--muted)}
+
+  /* data management */
+  .data-mgmt{
+    background:var(--bg-soft);border-radius:var(--radius);
+    padding:14px;margin-top:12px;
+  }
+  .data-mgmt h3{
+    margin:0 0 6px;font-size:13px;color:var(--muted);
+    font-weight:600;letter-spacing:.04em;
+  }
+  .data-mgmt .hint{
+    margin:0 0 10px;font-size:11px;color:var(--muted);line-height:1.55;
+  }
+  .data-mgmt .btn-row{display:flex;gap:8px;margin-bottom:8px}
+  .data-mgmt .btn-row .ghost-btn{flex:1;padding:11px;font-size:12px}
+  .ghost-btn.danger{
+    background:rgba(210,58,58,.14);color:#f3a8a8;
+    width:100%;padding:11px;font-size:12px;
+  }
+  .ghost-btn.danger:active{background:rgba(210,58,58,.25)}
+  .data-mgmt .last-export{
+    font-size:10px;color:var(--muted);margin-top:6px;text-align:right;
+  }
+
+  /* ===== quiz ===== */
+  .progress{
+    height:6px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;
+    margin-bottom:12px;
+  }
+  .progress > div{height:100%;background:var(--accent);transition:width .3s}
+
+  .board-wrap{
+    background:var(--bg-soft);border-radius:var(--radius);
+    padding:12px 10px;margin-bottom:14px;text-align:center;
+  }
+  .board-label{font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:.06em}
+  .cards-row{display:flex;justify-content:center;gap:6px;flex-wrap:nowrap}
+
+  .card{
+    background:var(--surface-2);color:var(--ink-dark);
+    border-radius:7px;
+    display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 4px rgba(0,0,0,.25);
+    font-weight:800;
+    position:relative;
+    user-select:none;
+  }
+  .card.lg{width:50px;height:70px;font-size:20px;padding:5px 4px}
+  .card.md{width:38px;height:54px;font-size:16px;padding:4px 3px}
+  .card.sm{width:28px;height:40px;font-size:13px;padding:3px 2px}
+  .card .top{align-self:flex-start;line-height:1}
+  .card .bot{align-self:flex-end;line-height:1;transform:rotate(180deg)}
+  .card .mid{font-size:1.4em;line-height:1}
+  .card.s-h,.card.s-d{color:var(--red)}
+  .card.s-s,.card.s-c{color:var(--ink-dark)}
+
+  .hands{display:flex;flex-direction:column;gap:10px}
+  .hand-row{
+    background:var(--bg-soft);border-radius:var(--radius);
+    padding:12px;display:flex;justify-content:space-between;align-items:center;
+    gap:10px;border:2px solid transparent;transition:border-color .2s, background .2s;
+  }
+  .hand-row.picked{border-color:var(--accent)}
+  .hand-row.locked{opacity:.85;pointer-events:none}
+  .hand-left{display:flex;align-items:center;gap:8px;flex:1}
+  .hand-badge{
+    width:28px;height:28px;border-radius:50%;
+    background:rgba(255,255,255,.1);color:var(--muted);
+    display:grid;place-items:center;font-weight:800;font-size:13px;flex-shrink:0;
+  }
+  .hand-row.picked .hand-badge{background:var(--accent);color:var(--ink-dark)}
+  .hand-cards{display:flex;gap:3px}
+  .hand-action{font-size:11px;color:var(--muted);font-weight:600}
+
+  .quiz-foot{
+    margin-top:14px;display:flex;gap:10px;
+  }
+  .ghost-btn{
+    background:rgba(255,255,255,.08);color:var(--ink);
+    padding:12px 14px;border-radius:var(--radius);font-weight:600;font-size:13px;
+    flex:1;
+  }
+  .primary-btn{
+    background:var(--accent);color:var(--ink-dark);
+    padding:13px;border-radius:var(--radius);font-weight:800;font-size:14px;
+    flex:2;
+  }
+  .primary-btn:disabled{opacity:.4}
+
+  /* answer reveal */
+  .answer-banner{
+    margin-top:14px;padding:14px;border-radius:var(--radius);
+    text-align:center;font-size:15px;font-weight:700;
+  }
+  .answer-banner.ok{background:rgba(47,170,107,.18);color:#9ee5b8;border:1px solid rgba(47,170,107,.45)}
+  .answer-banner.ng{background:rgba(210,58,58,.18);color:#f3a8a8;border:1px solid rgba(210,58,58,.45)}
+  .answer-banner .sub{font-size:12px;color:var(--muted);margin-top:4px;font-weight:500}
+
+  .hand-row.show-result{padding:10px 12px}
+  .equity-bar{
+    margin-top:8px;height:6px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;
+  }
+  .equity-bar > div{height:100%;background:linear-gradient(90deg,#2faa6b,#ffd24a);transition:width .4s}
+  .rank-tag{
+    font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;
+    background:rgba(255,255,255,.12);
+  }
+  .rank-tag.correct{background:var(--green);color:#fff}
+  .rank-tag.wrong{background:var(--red);color:#fff}
+  .equity-num{
+    font-weight:800;font-size:14px;color:var(--accent);
+    min-width:54px;text-align:right;
+  }
+  .your-pick{font-size:10px;color:var(--muted);margin-top:2px}
+
+  /* result screen */
+  .result-hero{
+    background:linear-gradient(135deg,#155138 0%,#2faa6b 100%);
+    border-radius:18px;padding:20px;text-align:center;margin-bottom:14px;
+  }
+  .result-score{font-size:54px;font-weight:900;color:var(--accent);line-height:1}
+  .result-of{font-size:14px;color:rgba(255,255,255,.8);margin-top:2px}
+  .result-pct{font-size:18px;margin-top:8px;font-weight:700}
+  .result-msg{font-size:13px;color:rgba(255,255,255,.8);margin-top:4px}
+
+  /* history */
+  .history-list{display:flex;flex-direction:column;gap:8px}
+  .hist-item{
+    background:var(--bg-soft);border-radius:var(--radius);
+    padding:12px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .hist-date{font-size:12px;color:var(--muted)}
+  .hist-score{font-size:18px;font-weight:800;color:var(--accent)}
+  .hist-detail{font-size:11px;color:var(--muted);margin-top:2px}
+
+  /* stats */
+  .chart{
+    background:var(--bg-soft);border-radius:var(--radius);padding:14px;
+    margin-bottom:10px;
+  }
+  .chart h3{margin:0 0 12px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:120px;padding:0 4px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .bar{
+    flex:1;background:linear-gradient(180deg,var(--accent),var(--accent-strong));
+    border-radius:4px 4px 0 0;min-height:4px;position:relative;
+    transition:height .4s;
+  }
+  .bar span{
+    position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+    font-size:9px;color:var(--muted);
+  }
+  .empty{
+    text-align:center;color:var(--muted);padding:32px 16px;font-size:13px;
+  }
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .stats-grid .stat-card{padding:14px 10px}
+
+  /* loading */
+  .loading{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);
+    display:grid;place-items:center;z-index:50;
+  }
+  .loading-box{
+    background:var(--bg-soft);padding:20px 26px;border-radius:var(--radius);
+    display:flex;align-items:center;gap:12px;
+  }
+  .spinner{
+    width:22px;height:22px;border:3px solid rgba(255,255,255,.18);
+    border-top-color:var(--accent);border-radius:50%;
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* very small phones */
+  @media (max-width:360px){
+    .card.lg{width:44px;height:62px;font-size:18px}
+    .card.md{width:34px;height:48px;font-size:14px}
+    .hero h1{font-size:18px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark">Ω</span><span>PLO Equity</span></div>
+    <div class="meta" id="topMeta"></div>
+  </div>
+
+  <!-- ===== HOME ===== -->
+  <section id="screen-home" class="screen active">
+    <div class="hero">
+      <h1>ポットリミットオマハ<br>エクイティトレーナー</h1>
+      <p>フロップに対して4ハンドのエクイティが高い順を当てるトレーニング。10問で1セット、結果と推移を記録します。</p>
+    </div>
+
+    <div class="home-stats" id="homeStats"></div>
+
+    <div class="difficulty" style="margin-bottom:10px">
+      <h3>プレイ人数</h3>
+      <div class="seg" id="playerSeg">
+        <button data-n="2">2人</button>
+        <button data-n="3">3人</button>
+        <button data-n="4" class="on">4人</button>
+      </div>
+    </div>
+
+    <div class="difficulty">
+      <h3>難易度 ／ 最高エクイティの範囲</h3>
+      <div class="seg" id="diffSeg">
+        <button data-min="50" data-max="80">かんたん</button>
+        <button data-min="35" data-max="50" class="on">ふつう</button>
+        <button data-min="28" data-max="38">むずかしい</button>
+      </div>
+
+      <div class="range-block">
+        <div class="range-head">
+          <span>最高エクイティの<u>下限</u></span>
+          <b><span id="lblMin">35</span>%</b>
+        </div>
+        <div class="range-row">
+          <span class="tick">25</span>
+          <input type="range" id="rngMin" min="25" max="95" step="1" value="35">
+          <span class="tick">95</span>
+        </div>
+        <div class="range-sub">最強ハンドのエクイティがこの値以上の問題のみ出題</div>
+      </div>
+
+      <div class="range-block">
+        <div class="range-head">
+          <span>最高エクイティの<u>上限</u></span>
+          <b><span id="lblMax">50</span>%</b>
+        </div>
+        <div class="range-row">
+          <span class="tick">30</span>
+          <input type="range" id="rngMax" min="30" max="100" step="1" value="50">
+          <span class="tick">100</span>
+        </div>
+        <div class="range-sub">最強ハンドのエクイティがこの値以下の問題のみ出題（接戦寄り）</div>
+      </div>
+    </div>
+
+    <button class="start-btn" id="startBtn">▶ 新しいセット（10問）を始める</button>
+
+    <div class="data-mgmt">
+      <h3>データのバックアップ</h3>
+      <p class="hint">
+        履歴と設定はこの端末のブラウザ内にだけ保存されています。<br>
+        ブラウザのデータ削除や端末変更で消える可能性があるため、<br>
+        定期的にJSONファイルとして書き出しておくことをおすすめします。
+      </p>
+      <div class="btn-row">
+        <button id="exportBtn" class="ghost-btn">📤 書き出し</button>
+        <button id="importBtn" class="ghost-btn">📥 読み込み</button>
+      </div>
+      <button id="clearAllBtn" class="ghost-btn danger">🗑 全データを削除</button>
+      <div id="lastExportInfo" class="last-export"></div>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </section>
+
+  <!-- ===== QUIZ ===== -->
+  <section id="screen-quiz" class="screen">
+    <div class="progress"><div id="progBar"></div></div>
+    <div class="board-wrap">
+      <div class="board-label">FLOP</div>
+      <div class="cards-row" id="flopRow"></div>
+    </div>
+    <div class="board-label" style="margin:0 0 6px 4px;text-align:left">エクイティが高い順にタップ</div>
+    <div class="hands" id="handsList"></div>
+
+    <div class="quiz-foot" id="quizFoot">
+      <button class="ghost-btn" id="resetPickBtn">クリア</button>
+      <button class="primary-btn" id="submitBtn" disabled>答え合わせ</button>
+    </div>
+
+    <div id="answerArea"></div>
+  </section>
+
+  <!-- ===== SET RESULT ===== -->
+  <section id="screen-result" class="screen">
+    <div class="result-hero">
+      <div class="result-of">SET RESULT</div>
+      <div class="result-score" id="resScore">0</div>
+      <div class="result-of">/ 10 問正解</div>
+      <div class="result-pct" id="resPct">0%</div>
+      <div class="result-msg" id="resMsg"></div>
+    </div>
+    <button class="start-btn" id="againBtn">もう一度プレイ</button>
+    <button class="ghost-btn" id="toHistoryBtn" style="width:100%;margin-top:8px">履歴を見る</button>
+  </section>
+
+  <!-- ===== HISTORY ===== -->
+  <section id="screen-history" class="screen">
+    <h2 style="margin:0 0 12px;font-size:16px">履歴</h2>
+    <div id="historyList" class="history-list"></div>
+  </section>
+
+  <!-- ===== STATS ===== -->
+  <section id="screen-stats" class="screen">
+    <h2 style="margin:0 0 12px;font-size:16px">統計</h2>
+    <div class="stats-grid" id="statsTop"></div>
+    <div class="chart">
+      <h3>直近10セットの正答率</h3>
+      <div id="chartBars" class="bars"></div>
+    </div>
+    <div class="chart">
+      <h3>10セットごとの平均</h3>
+      <div id="chartAvgBars" class="bars"></div>
+    </div>
+  </section>
+</div>
+
+<!-- bottom nav -->
+<nav class="nav" id="nav">
+  <button data-s="home" class="active"><span class="icon">🏠</span><span>ホーム</span></button>
+  <button data-s="history"><span class="icon">📜</span><span>履歴</span></button>
+  <button data-s="stats"><span class="icon">📊</span><span>統計</span></button>
+</nav>
+
+<div id="loadingMask" class="loading" style="display:none">
+  <div class="loading-box"><div class="spinner"></div><div>エクイティ計算中…</div></div>
+</div>
+
+<script>
+/* =========================================================
+   PLO Equity Trainer
+   - PLO hand evaluator (4 hole + 5 board, choose 2+3)
+   - Monte Carlo equity simulation
+   - Quiz generator with difficulty-based equity gap control
+   - LocalStorage history & stats
+========================================================= */
+'use strict';
+
+/* ---------- card / deck ---------- */
+const SUITS = ['s','h','d','c'];          // 0..3
+const SUIT_GLYPH = {s:'♠', h:'♥', d:'♦', c:'♣'};
+const RANK_GLYPH = {14:'A',13:'K',12:'Q',11:'J',10:'T',9:'9',8:'8',7:'7',6:'6',5:'5',4:'4',3:'3',2:'2'};
+
+function makeDeck(){
+  const d = [];
+  for(let r=2;r<=14;r++) for(let s=0;s<4;s++) d.push({rank:r, suit:s, id:r*4+s});
+  return d;
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* ---------- 5-card evaluator ---------- */
+/* returns a comparable integer; bigger = stronger */
+function evaluate5(cards){
+  const ranks = cards.map(c=>c.rank);
+  const suits = cards.map(c=>c.suit);
+  const sortedDesc = [...ranks].sort((a,b)=>b-a);
+
+  // flush?
+  const isFlush = suits[0]===suits[1] && suits[1]===suits[2] && suits[2]===suits[3] && suits[3]===suits[4];
+
+  // straight?
+  const uniq = [...new Set(sortedDesc)];
+  let isStraight = false, straightHigh = 0;
+  if(uniq.length === 5){
+    if(uniq[0]-uniq[4] === 4){ isStraight = true; straightHigh = uniq[0]; }
+    else if(uniq[0]===14 && uniq[1]===5 && uniq[4]===2){ isStraight = true; straightHigh = 5; }
+  }
+
+  // rank counts
+  const cnt = {};
+  for(const r of ranks) cnt[r] = (cnt[r]||0)+1;
+  const entries = Object.entries(cnt).map(([r,c])=>[+r,c]);
+  entries.sort((a,b)=> b[1]-a[1] || b[0]-a[0]);
+  const counts = entries.map(e=>e[1]);
+  const rByC   = entries.map(e=>e[0]);
+
+  let cat, k1=0,k2=0,k3=0,k4=0,k5=0;
+
+  if(isStraight && isFlush){
+    cat = 8; k1 = straightHigh;
+  } else if(counts[0]===4){
+    cat = 7; k1 = rByC[0]; k2 = rByC[1];
+  } else if(counts[0]===3 && counts[1]===2){
+    cat = 6; k1 = rByC[0]; k2 = rByC[1];
+  } else if(isFlush){
+    cat = 5; [k1,k2,k3,k4,k5] = sortedDesc;
+  } else if(isStraight){
+    cat = 4; k1 = straightHigh;
+  } else if(counts[0]===3){
+    cat = 3; k1 = rByC[0];
+    const others = sortedDesc.filter(r=>r!==rByC[0]);
+    k2 = others[0]; k3 = others[1];
+  } else if(counts[0]===2 && counts[1]===2){
+    cat = 2; k1 = rByC[0]; k2 = rByC[1];
+    k3 = sortedDesc.find(r=>r!==rByC[0] && r!==rByC[1]);
+  } else if(counts[0]===2){
+    cat = 1; k1 = rByC[0];
+    const others = sortedDesc.filter(r=>r!==rByC[0]);
+    k2 = others[0]; k3 = others[1]; k4 = others[2];
+  } else {
+    cat = 0; [k1,k2,k3,k4,k5] = sortedDesc;
+  }
+
+  // 4-bit each; total <=28 bits, safe integer
+  return (((((cat<<4|k1)<<4|k2)<<4|k3)<<4|k4)<<4|k5);
+}
+
+/* ---------- PLO best (4 hole + 5 board) ---------- */
+const HOLE_PAIRS  = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+const BOARD_TRIPS = [
+  [0,1,2],[0,1,3],[0,1,4],
+  [0,2,3],[0,2,4],[0,3,4],
+  [1,2,3],[1,2,4],[1,3,4],[2,3,4]
+];
+function evaluatePLO(hole, board){
+  let best = -1;
+  for(let h=0;h<6;h++){
+    const hp = HOLE_PAIRS[h];
+    const h1 = hole[hp[0]], h2 = hole[hp[1]];
+    for(let b=0;b<10;b++){
+      const bp = BOARD_TRIPS[b];
+      const five = [h1, h2, board[bp[0]], board[bp[1]], board[bp[2]]];
+      const s = evaluate5(five);
+      if(s > best) best = s;
+    }
+  }
+  return best;
+}
+
+/* ---------- equity (Monte Carlo for fast filtering) ---------- */
+function calculateEquities(hands, flop, iterations){
+  const used = new Uint8Array(60);
+  for(const h of hands) for(const c of h) used[c.id] = 1;
+  for(const c of flop) used[c.id] = 1;
+  const deck = [];
+  for(let r=2;r<=14;r++) for(let s=0;s<4;s++){
+    const id = r*4+s;
+    if(!used[id]) deck.push({rank:r, suit:s, id});
+  }
+  const N = hands.length;
+  const win = new Float64Array(N);
+  const scores = new Array(N);
+  for(let it=0; it<iterations; it++){
+    const i1 = (Math.random()*deck.length)|0;
+    let i2; do{ i2 = (Math.random()*deck.length)|0; } while(i2===i1);
+    const board = [flop[0],flop[1],flop[2], deck[i1], deck[i2]];
+    let bestScore = -1, tieCount = 0;
+    for(let p=0;p<N;p++){
+      const s = evaluatePLO(hands[p], board);
+      scores[p] = s;
+      if(s > bestScore){ bestScore = s; tieCount = 1; }
+      else if(s === bestScore){ tieCount++; }
+    }
+    const share = 1 / tieCount;
+    for(let p=0;p<N;p++) if(scores[p] === bestScore) win[p] += share;
+  }
+  const out = [];
+  for(let p=0;p<N;p++) out.push((win[p]/iterations)*100);
+  return out;
+}
+
+/* ---------- equity (EXACT enumeration over all turn+river runouts)
+   Per MD review:
+     - 4 hands: C(33,2) = 528 runouts
+     - 3 hands: C(37,2) = 666 runouts
+     - 2 hands: C(41,2) = 820 runouts
+   No sampling noise; identical inputs always yield identical results.    */
+function calculateEquitiesExact(hands, flop){
+  const used = new Uint8Array(60);
+  for(const h of hands) for(const c of h) used[c.id] = 1;
+  for(const c of flop) used[c.id] = 1;
+  const deck = [];
+  for(let r=2;r<=14;r++) for(let s=0;s<4;s++){
+    const id = r*4+s;
+    if(!used[id]) deck.push({rank:r, suit:s, id});
+  }
+  const N = hands.length;
+  const win = new Float64Array(N);
+  const scores = new Array(N);
+  let total = 0;
+  const f0 = flop[0], f1 = flop[1], f2 = flop[2];
+  const L = deck.length;
+  for(let i=0;i<L;i++){
+    const di = deck[i];
+    for(let j=i+1;j<L;j++){
+      const dj = deck[j];
+      const board = [f0,f1,f2,di,dj];
+      let bestScore = -1, tieCount = 0;
+      for(let p=0;p<N;p++){
+        const s = evaluatePLO(hands[p], board);
+        scores[p] = s;
+        if(s > bestScore){ bestScore = s; tieCount = 1; }
+        else if(s === bestScore){ tieCount++; }
+      }
+      const share = 1 / tieCount;
+      for(let p=0;p<N;p++) if(scores[p] === bestScore) win[p] += share;
+      total++;
+    }
+  }
+  const out = [];
+  for(let p=0;p<N;p++) out.push((win[p]/total)*100);
+  return out;
+}
+
+function minAdjacent(sortedDesc){
+  let m = Infinity;
+  for(let i=0;i<sortedDesc.length-1;i++){
+    const d = sortedDesc[i]-sortedDesc[i+1];
+    if(d < m) m = d;
+  }
+  return m;
+}
+
+/* ---------- question generation ---------- */
+/* Filter candidates with a fast Monte Carlo pass, then confirm the
+   chosen flop with EXACT enumeration so the shown equities are stable. */
+function generateQuestion(settings){
+  const N = settings.numPlayers;
+  const topMin = settings.topMin;
+  const topMax = settings.topMax;
+  const targetMid = (topMin + topMax) / 2;
+  const span = Math.max(4, topMax - topMin);
+  const tries = span <= 8 ? 80 : span <= 16 ? 55 : 40;
+
+  let best = null;
+  for(let attempt=0; attempt<tries; attempt++){
+    const deck = shuffle(makeDeck());
+    const flop = deck.slice(0,3);
+    const hands = [];
+    for(let i=0;i<N;i++) hands.push(deck.slice(3 + i*4, 7 + i*4));
+
+    // quick Monte Carlo filter (cheap)
+    const eqQuick = calculateEquities(hands, flop, 400);
+    const top = Math.max(...eqQuick);
+    const sortedQ = [...eqQuick].sort((a,b)=>b-a);
+    const adjQ = minAdjacent(sortedQ);
+
+    if(top >= topMin && top <= topMax && adjQ >= 1.0){
+      // confirm with exact enumeration
+      const eqExact = calculateEquitiesExact(hands, flop);
+      const top2 = Math.max(...eqExact);
+      const sortedE = [...eqExact].sort((a,b)=>b-a);
+      const adjE = minAdjacent(sortedE);
+      if(top2 >= topMin && top2 <= topMax && adjE >= 0.6){
+        return { flop, hands, equities: eqExact };
+      }
+    }
+    const dist = Math.abs(top - targetMid);
+    if(!best || dist < best.dist){ best = { flop, hands, dist }; }
+  }
+  // fallback: still compute exact on the closest candidate
+  const eqExact = calculateEquitiesExact(best.hands, best.flop);
+  return { flop: best.flop, hands: best.hands, equities: eqExact };
+}
+
+/* ---------- storage ---------- */
+const LS_KEY = 'plo_equity_trainer_v1';
+/* presets adjust to the equilibrium baseline for each player count */
+const PRESETS = {
+  2: { easy: [70, 95], normal: [58, 72], hard: [50, 58] },
+  3: { easy: [55, 85], normal: [42, 55], hard: [34, 42] },
+  4: { easy: [50, 80], normal: [35, 50], hard: [28, 38] }
+};
+function defaultSettings(){ return { numPlayers: 4, topMin: 35, topMax: 50 }; }
+function loadStore(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return { sessions: [], settings: defaultSettings() };
+    const obj = JSON.parse(raw);
+    if(!obj.sessions) obj.sessions = [];
+    if(!obj.settings) obj.settings = defaultSettings();
+    // migrate old { difficulty } -> { topMin, topMax }
+    if(obj.settings.topMin === undefined || obj.settings.topMax === undefined){
+      const d = obj.settings.difficulty;
+      if(d === 'easy')      obj.settings = { numPlayers:4, topMin: 50, topMax: 80 };
+      else if(d === 'hard') obj.settings = { numPlayers:4, topMin: 28, topMax: 38 };
+      else                  obj.settings = defaultSettings();
+    }
+    if(!obj.settings.numPlayers) obj.settings.numPlayers = 4;
+    // clamp
+    const minFloor = Math.max(25, Math.ceil(100/obj.settings.numPlayers));
+    obj.settings.topMin = Math.max(minFloor, Math.min(95, obj.settings.topMin|0));
+    obj.settings.topMax = Math.max(minFloor+3, Math.min(100, obj.settings.topMax|0));
+    if(obj.settings.topMin + 3 > obj.settings.topMax){
+      obj.settings.topMax = Math.min(100, obj.settings.topMin + 5);
+    }
+    return obj;
+  }catch(e){ return { sessions: [], settings: defaultSettings() }; }
+}
+function saveStore(){ localStorage.setItem(LS_KEY, JSON.stringify(store)); }
+let store = loadStore();
+
+/* ---------- DOM helpers ---------- */
+const $ = (id) => document.getElementById(id);
+function cardHTML(card, size='md'){
+  const suitClass = 's-'+SUITS[card.suit];
+  const r = RANK_GLYPH[card.rank];
+  const g = SUIT_GLYPH[SUITS[card.suit]];
+  return `<div class="card ${size} ${suitClass}"><div class="top">${r}</div><div class="mid">${g}</div><div class="bot">${r}</div></div>`;
+}
+function fmtDate(ts){
+  const d = new Date(ts);
+  const pad = n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/* ---------- navigation ---------- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  $('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.s === id);
+  });
+  // hide top meta on certain screens
+  $('topMeta').innerHTML = '';
+  if(id==='home') renderHome();
+  if(id==='history') renderHistory();
+  if(id==='stats') renderStats();
+}
+document.querySelectorAll('.nav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(state.inQuiz && btn.dataset.s !== 'home'){
+      if(!confirm('進行中のセットは保存されません。移動しますか？')) return;
+      abandonQuiz();
+    } else if(state.inQuiz){
+      abandonQuiz();
+    }
+    show(btn.dataset.s);
+  });
+});
+
+/* ---------- home ---------- */
+function renderHome(){
+  const s = store.sessions;
+  const total = s.length;
+  const avg = total ? Math.round(s.reduce((a,b)=>a+b.correct, 0) / total * 10)/10 : 0;
+  const best = total ? Math.max(...s.map(x=>x.correct)) : 0;
+  $('homeStats').innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">完了セット</div></div>
+    <div class="stat-card"><div class="num">${avg}<span style="font-size:11px">/10</span></div><div class="lbl">平均正解</div></div>
+    <div class="stat-card"><div class="num">${best}<span style="font-size:11px">/10</span></div><div class="lbl">ベスト</div></div>
+  `;
+  syncDifficultyUI();
+}
+
+function applyPresetsForPlayers(){
+  const N = store.settings.numPlayers;
+  const p = PRESETS[N];
+  const order = ['easy','normal','hard'];
+  document.querySelectorAll('#diffSeg button').forEach((b, i)=>{
+    const key = order[i];
+    b.dataset.min = p[key][0];
+    b.dataset.max = p[key][1];
+  });
+}
+function updateSliderBounds(){
+  const N = store.settings.numPlayers;
+  const floor = Math.max(25, Math.ceil(100/N)); // 25, 34, 50
+  $('rngMin').min = floor;
+  $('rngMax').min = floor + 3;
+  if(store.settings.topMin < floor){ store.settings.topMin = floor; }
+  if(store.settings.topMax < floor + 3){ store.settings.topMax = floor + 8; }
+}
+
+function syncDifficultyUI(){
+  const { topMin, topMax, numPlayers } = store.settings;
+  applyPresetsForPlayers();
+  updateSliderBounds();
+  $('lblMin').textContent = topMin;
+  $('lblMax').textContent = topMax;
+  $('rngMin').value = topMin;
+  $('rngMax').value = topMax;
+  document.querySelectorAll('#diffSeg button').forEach(b=>{
+    const m = +b.dataset.min, x = +b.dataset.max;
+    b.classList.toggle('on', m === topMin && x === topMax);
+  });
+  document.querySelectorAll('#playerSeg button').forEach(b=>{
+    b.classList.toggle('on', +b.dataset.n === numPlayers);
+  });
+}
+
+// player count buttons
+document.querySelectorAll('#playerSeg button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const N = +b.dataset.n;
+    store.settings.numPlayers = N;
+    // jump to "normal" preset for this player count
+    const norm = PRESETS[N].normal;
+    store.settings.topMin = norm[0];
+    store.settings.topMax = norm[1];
+    saveStore();
+    syncDifficultyUI();
+  });
+});
+
+// preset buttons
+document.querySelectorAll('#diffSeg button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    store.settings.topMin = +b.dataset.min;
+    store.settings.topMax = +b.dataset.max;
+    saveStore();
+    syncDifficultyUI();
+  });
+});
+
+// sliders (keep topMin <= topMax-3 to avoid impossible ranges)
+$('rngMin').addEventListener('input', ()=>{
+  const floor = Math.max(25, Math.ceil(100/store.settings.numPlayers));
+  let v = +$('rngMin').value;
+  if(v < floor){ v = floor; $('rngMin').value = v; }
+  if(v > store.settings.topMax - 3){ v = store.settings.topMax - 3; $('rngMin').value = v; }
+  store.settings.topMin = v;
+  $('lblMin').textContent = v;
+  syncPresetMark();
+});
+$('rngMax').addEventListener('input', ()=>{
+  const floor = Math.max(25, Math.ceil(100/store.settings.numPlayers));
+  let v = +$('rngMax').value;
+  if(v < floor + 3){ v = floor + 3; $('rngMax').value = v; }
+  if(v < store.settings.topMin + 3){ v = store.settings.topMin + 3; $('rngMax').value = v; }
+  store.settings.topMax = v;
+  $('lblMax').textContent = v;
+  syncPresetMark();
+});
+$('rngMin').addEventListener('change', saveStore);
+$('rngMax').addEventListener('change', saveStore);
+
+function syncPresetMark(){
+  const { topMin, topMax } = store.settings;
+  document.querySelectorAll('#diffSeg button').forEach(b=>{
+    const m = +b.dataset.min, x = +b.dataset.max;
+    b.classList.toggle('on', m === topMin && x === topMax);
+  });
+}
+
+/* ---------- quiz state ---------- */
+const state = {
+  inQuiz: false,
+  qIndex: 0,
+  total: 10,
+  correct: 0,
+  numPlayers: 4,        // locked at the start of a set
+  current: null,        // {flop, hands, equities, picks:[], correctOrder:[]}
+  picks: [],            // array of hand-indices in user-picked order
+  answered: false,
+  partialLast: 0,       // place-correct count of the most recent answer
+  sessionQuestions: []  // log per question
+};
+
+$('startBtn').addEventListener('click', ()=> startQuiz());
+$('againBtn').addEventListener('click', ()=> startQuiz());
+$('toHistoryBtn').addEventListener('click', ()=> show('history'));
+
+function startQuiz(){
+  state.inQuiz = true;
+  state.qIndex = 0;
+  state.correct = 0;
+  state.numPlayers = store.settings.numPlayers || 4;
+  state.partialLast = 0;
+  state.sessionQuestions = [];
+  show('quiz');
+  nextQuestion();
+}
+function abandonQuiz(){
+  state.inQuiz = false;
+}
+
+async function nextQuestion(){
+  state.answered = false;
+  state.picks = [];
+  $('answerArea').innerHTML = '';
+  $('quizFoot').style.display = 'flex';
+
+  // progress
+  $('progBar').style.width = ((state.qIndex)/state.total*100)+'%';
+  $('topMeta').innerHTML = `<span><b>${state.qIndex+1}</b>/${state.total}</span><span>${state.numPlayers}人</span><span>累計正解 <b>${state.correct}</b></span>`;
+
+  // show loading; compute in next tick
+  $('loadingMask').style.display = 'grid';
+  await new Promise(r=>setTimeout(r,40));
+
+  try{
+    state.current = generateQuestion(store.settings);
+  } finally {
+    $('loadingMask').style.display = 'none';
+  }
+
+  // correct order (indices descending equity)
+  const eq = state.current.equities;
+  const order = eq.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v).map(x=>x.i);
+  state.current.correctOrder = order;
+
+  // render flop
+  $('flopRow').innerHTML = state.current.flop.map(c=>cardHTML(c,'lg')).join('');
+  renderHands();
+  updateSubmitBtn();
+}
+
+function renderHands(){
+  const html = state.current.hands.map((hand, idx)=>{
+    const pickIdx = state.picks.indexOf(idx);
+    const badge = pickIdx === -1 ? (idx+1) : (pickIdx+1) + '位';
+    const picked = pickIdx !== -1;
+    return `
+      <div class="hand-row ${picked?'picked':''}" data-i="${idx}">
+        <div class="hand-left">
+          <div class="hand-badge">${pickIdx === -1 ? String.fromCharCode(65+idx) : (pickIdx+1)}</div>
+          <div class="hand-cards">${hand.map(c=>cardHTML(c,'md')).join('')}</div>
+        </div>
+        <div class="hand-action">${pickIdx === -1 ? 'タップで選択' : (pickIdx+1)+'位'}</div>
+      </div>`;
+  }).join('');
+  $('handsList').innerHTML = html;
+  document.querySelectorAll('#handsList .hand-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      if(state.answered) return;
+      const i = +row.dataset.i;
+      if(state.picks.includes(i)) return; // already picked
+      state.picks.push(i);
+      renderHands();
+      updateSubmitBtn();
+    });
+  });
+}
+
+function updateSubmitBtn(){
+  $('submitBtn').disabled = state.picks.length !== state.numPlayers;
+}
+
+$('resetPickBtn').addEventListener('click', ()=>{
+  if(state.answered) return;
+  state.picks = [];
+  renderHands();
+  updateSubmitBtn();
+});
+
+$('submitBtn').addEventListener('click', ()=>{
+  const N = state.numPlayers;
+  if(state.picks.length !== N || state.answered) return;
+  state.answered = true;
+  const correct = state.current.correctOrder;
+  const isExact = state.picks.every((v,i)=> v === correct[i]);
+
+  // count place-correct for partial-match display
+  let placeCorrect = 0;
+  for(let i=0;i<N;i++) if(state.picks[i] === correct[i]) placeCorrect++;
+  state.partialLast = placeCorrect;
+
+  if(isExact) state.correct++;
+
+  state.sessionQuestions.push({
+    flop: state.current.flop.map(c=>c.id),
+    hands: state.current.hands.map(h=>h.map(c=>c.id)),
+    equities: state.current.equities,
+    picks: [...state.picks],
+    correct: isExact,
+    placeCorrect,
+    numPlayers: N
+  });
+
+  $('quizFoot').style.display = 'none';
+  renderAnswer(isExact, placeCorrect);
+  $('topMeta').innerHTML = `<span><b>${state.qIndex+1}</b>/${state.total}</span><span>${N}人</span><span>累計正解 <b>${state.correct}</b></span>`;
+});
+
+function renderAnswer(isExact, placeCorrect){
+  const cur = state.current;
+  const N = state.numPlayers;
+  const eq = cur.equities;
+  const correct = cur.correctOrder;
+  const userPickPos = new Array(N);
+  state.picks.forEach((handIdx, pos)=> userPickPos[handIdx] = pos);
+
+  // header strip: 今回 / 部分一致 / 累計
+  const headerHTML = `
+    <div class="header-stats">
+      <div class="item">今回 <b>${isExact ? '正解' : '不正解'}</b></div>
+      <div class="item">部分一致 <b>${placeCorrect}/${N}</b></div>
+      <div class="item">累計正解 <b>${state.correct}/${state.qIndex+1}</b></div>
+    </div>`;
+
+  // hand cards, ordered by correct rank
+  const rowsHTML = correct.map((handIdx, rank)=>{
+    const hand = cur.hands[handIdx];
+    const e = eq[handIdx].toFixed(1);
+    const userPos = userPickPos[handIdx];
+    const isCorrectPlace = userPos === rank;
+    const pill = isCorrectPlace
+      ? `<span class="pill ok">✓ 一致</span>`
+      : `<span class="pill ng">× 不一致</span>`;
+    const badgeBg = isCorrectPlace ? 'var(--green)' : 'var(--red)';
+    return `
+      <div class="res-card">
+        <div class="top-line">
+          <div class="badge-rank" style="background:${badgeBg}">${rank+1}</div>
+          <div class="hand-cards">${hand.map(c=>cardHTML(c,'md')).join('')}</div>
+          <div class="eq">${e}%</div>
+        </div>
+        <div class="info-row">
+          <div>
+            <span class="label">正解順位<b>${rank+1}位</b></span>
+            <span class="label" style="margin-left:10px">あなた<b>${userPos+1}位</b></span>
+          </div>
+          ${pill}
+        </div>
+        <div class="equity-bar"><div style="width:${Math.min(100, eq[handIdx]*1.6)}%"></div></div>
+      </div>`;
+  }).join('');
+
+  $('handsList').innerHTML = headerHTML + rowsHTML;
+
+  const banner = isExact
+    ? `<div class="answer-banner ok">⭕ 正解！<div class="sub">全${N}ハンドの順位が完全に一致</div></div>`
+    : `<div class="answer-banner ng">❌ 不正解<div class="sub">位置一致 ${placeCorrect}/${N} ・ 正解の順位は上から</div></div>`;
+  $('answerArea').innerHTML = `
+    ${banner}
+    <button class="primary-btn" id="nextBtn" style="width:100%;margin-top:12px">
+      ${state.qIndex+1 >= state.total ? '結果を見る' : '次の問題 →'}
+    </button>
+  `;
+  $('nextBtn').addEventListener('click', ()=>{
+    state.qIndex++;
+    if(state.qIndex >= state.total){
+      finishSet();
+    } else {
+      nextQuestion();
+    }
+  });
+}
+
+function finishSet(){
+  state.inQuiz = false;
+  const sess = {
+    ts: Date.now(),
+    correct: state.correct,
+    total: state.total,
+    numPlayers: state.numPlayers,
+    topMin: store.settings.topMin,
+    topMax: store.settings.topMax,
+    questions: state.sessionQuestions
+  };
+  store.sessions.push(sess);
+  saveStore();
+
+  $('resScore').textContent = state.correct;
+  $('resPct').textContent = Math.round(state.correct/state.total*100) + '%';
+  const msgs = ['もう少し！再挑戦してみましょう。','よく頑張りました！','ナイスプレイ！','素晴らしい！','プロ級！','驚異的！'];
+  const idx = Math.min(msgs.length-1, Math.floor(state.correct/2));
+  $('resMsg').textContent = msgs[idx];
+  show('result');
+}
+
+/* ---------- history ---------- */
+function renderHistory(){
+  const s = [...store.sessions].sort((a,b)=>b.ts-a.ts);
+  if(!s.length){
+    $('historyList').innerHTML = `<div class="empty">まだ履歴がありません。ホームから最初のセットを始めましょう。</div>`;
+    return;
+  }
+  $('historyList').innerHTML = s.map((x, i)=>`
+    <div class="hist-item">
+      <div>
+        <div class="hist-date">${fmtDate(x.ts)}</div>
+        <div class="hist-detail">${x.numPlayers||4}人 ／ トップエクイティ ${settingsLabel(x)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="hist-score">${x.correct}<span style="font-size:11px;color:var(--muted)">/${x.total}</span></div>
+        <div class="hist-detail">${Math.round(x.correct/x.total*100)}%</div>
+      </div>
+    </div>
+  `).join('');
+}
+function settingsLabel(x){
+  if(x.topMin !== undefined && x.topMax !== undefined){
+    return `${x.topMin}〜${x.topMax}%`;
+  }
+  const d = x.difficulty;
+  return d==='easy'?'かんたん': d==='hard'?'むずかしい':'ふつう';
+}
+
+/* ---------- stats ---------- */
+function renderStats(){
+  const s = store.sessions;
+  if(!s.length){
+    $('statsTop').innerHTML = '';
+    $('chartBars').innerHTML = `<div class="empty" style="flex:1">データがありません</div>`;
+    $('chartAvgBars').innerHTML = `<div class="empty" style="flex:1">データがありません</div>`;
+    return;
+  }
+  const total = s.length;
+  const avg = (s.reduce((a,b)=>a+b.correct,0) / total).toFixed(1);
+  const totalCorrect = s.reduce((a,b)=>a+b.correct,0);
+  const totalQ = s.reduce((a,b)=>a+b.total,0);
+  const pct = Math.round(totalCorrect/totalQ*100);
+  const best = Math.max(...s.map(x=>x.correct));
+
+  $('statsTop').innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">完了セット</div></div>
+    <div class="stat-card"><div class="num">${pct}%</div><div class="lbl">通算正答率</div></div>
+    <div class="stat-card"><div class="num">${avg}<span style="font-size:11px">/10</span></div><div class="lbl">平均正解</div></div>
+    <div class="stat-card"><div class="num">${best}<span style="font-size:11px">/10</span></div><div class="lbl">ベスト</div></div>
+  `;
+
+  // last 10 sessions bars
+  const last = s.slice(-10);
+  $('chartBars').innerHTML = last.map(x=>{
+    const h = Math.max(4, x.correct/10 * 110);
+    return `<div class="bar" style="height:${h}px"><span>${x.correct}</span></div>`;
+  }).join('');
+
+  // grouped by 10
+  const groups = [];
+  for(let i=0; i<s.length; i+=10){
+    const g = s.slice(i, i+10);
+    const a = g.reduce((acc,b)=>acc+b.correct,0)/g.length;
+    groups.push(a);
+  }
+  $('chartAvgBars').innerHTML = groups.length
+    ? groups.slice(-10).map(v=>{
+        const h = Math.max(4, v/10 * 110);
+        return `<div class="bar" style="height:${h}px"><span>${v.toFixed(1)}</span></div>`;
+      }).join('')
+    : `<div class="empty" style="flex:1">10セット未満</div>`;
+}
+
+/* ---------- fixed test (per review MD)
+   Flop: 2s Th 3h
+   Hands: 9s8s7dTd / 9d8hQs5h / 4s7hAd6h / 9h8cQc8d
+   Expected equities (~): 38.1 / 36.3 / 21.2 / 4.3  (±1.0pt tolerance)
+   The expected order: 1 > 2 > 3 > 4                                  */
+function runFixedTest(){
+  const sIdx = {s:0,h:1,d:2,c:3};
+  const mk = (rank, suitChar) => {
+    const su = sIdx[suitChar];
+    return { rank, suit: su, id: rank*4+su };
+  };
+  const T=10, J=11, Q=12, K=13, A=14;
+  const flop = [mk(2,'s'), mk(T,'h'), mk(3,'h')];
+  const hands = [
+    [mk(9,'s'), mk(8,'s'), mk(7,'d'), mk(T,'d')],
+    [mk(9,'d'), mk(8,'h'), mk(Q,'s'), mk(5,'h')],
+    [mk(4,'s'), mk(7,'h'), mk(A,'d'), mk(6,'h')],
+    [mk(9,'h'), mk(8,'c'), mk(Q,'c'), mk(8,'d')]
+  ];
+  const expected = [38.1, 36.3, 21.2, 4.3];
+  const t0 = performance.now();
+  const eq = calculateEquitiesExact(hands, flop);
+  const t1 = performance.now();
+  let pass = true;
+  const lines = [`[PLO fixed test] exact enumeration in ${(t1-t0).toFixed(0)}ms`];
+  for(let i=0;i<4;i++){
+    const diff = Math.abs(eq[i]-expected[i]);
+    if(diff > 1.0) pass = false;
+    lines.push(`  Hand ${i+1}: ${eq[i].toFixed(2)}%  (expected ${expected[i]}%, diff ${diff.toFixed(2)})`);
+  }
+  const sum = eq.reduce((a,b)=>a+b,0);
+  if(sum < 99.5 || sum > 100.5) pass = false;
+  lines.push(`  Sum: ${sum.toFixed(2)}%  (expect 100)`);
+  lines.push(pass ? '  ✅ PASS' : '  ❌ FAIL');
+  console.log(lines.join('\n'));
+  return pass;
+}
+try { runFixedTest(); } catch(e){ console.warn('fixed test error', e); }
+
+/* ---------- data import / export / wipe ---------- */
+const EXPORT_TYPE = 'plo-equity-trainer-export';
+const EXPORT_VERSION = 1;
+
+function downloadJSON(filename, obj){
+  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+
+function exportData(){
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+  const payload = {
+    type: EXPORT_TYPE,
+    version: EXPORT_VERSION,
+    exportedAt: now.toISOString(),
+    counts: { sessions: store.sessions.length },
+    data: {
+      sessions: store.sessions,
+      settings: store.settings
+    }
+  };
+  downloadJSON(`plo-equity-backup-${stamp}.json`, payload);
+  store.lastExportAt = now.getTime();
+  saveStore();
+  renderLastExport();
+}
+
+function importFromFile(file){
+  const reader = new FileReader();
+  reader.onerror = ()=> alert('ファイルの読み込みに失敗しました。');
+  reader.onload = (e)=>{
+    let obj;
+    try { obj = JSON.parse(e.target.result); }
+    catch(err){ alert('JSONの解析に失敗しました：\n'+err.message); return; }
+    if(!obj || obj.type !== EXPORT_TYPE){
+      alert('このファイルは PLO Equity Trainer のバックアップではありません。');
+      return;
+    }
+    const incoming = (obj.data && Array.isArray(obj.data.sessions)) ? obj.data.sessions : null;
+    if(!incoming){ alert('セッションデータが見つかりません。'); return; }
+    // basic shape check
+    const validIncoming = incoming.filter(s => s && typeof s.ts === 'number' && typeof s.correct === 'number');
+    if(validIncoming.length === 0){ alert('読み込めるセッションがありませんでした。'); return; }
+
+    const existCount = store.sessions.length;
+    const incCount = validIncoming.length;
+    const mergeMode = confirm(
+      `インポート方法を選んでください。\n\n` +
+      `現在の履歴：${existCount} 件\n` +
+      `読み込むデータ：${incCount} 件\n\n` +
+      `「OK」 → 既存と合算（同じ日時のものは1件にまとめます）\n` +
+      `「キャンセル」 → 既存を全て削除し、読み込んだデータだけに置き換え`
+    );
+
+    let merged;
+    if(mergeMode){
+      const seen = new Set(store.sessions.map(s=>s.ts));
+      merged = [...store.sessions];
+      for(const s of validIncoming) if(!seen.has(s.ts)){ merged.push(s); seen.add(s.ts); }
+    } else {
+      if(!confirm(`既存の ${existCount} 件を削除して置き換えます。よろしいですか？`)) return;
+      merged = validIncoming;
+    }
+    merged.sort((a,b)=>a.ts - b.ts);
+    store.sessions = merged;
+    if(obj.data.settings){
+      store.settings = Object.assign({}, store.settings, obj.data.settings);
+    }
+    saveStore();
+    renderHome();
+    alert(`インポート完了：${mergeMode?'合算':'置き換え'} → 履歴 ${merged.length} 件`);
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData(){
+  const n = store.sessions.length;
+  if(!confirm(`本当に全データ（履歴 ${n} 件と設定）を削除しますか？\nこの操作は取り消せません。`)) return;
+  if(!confirm(`最終確認：${n} 件の履歴を完全に削除します。続行しますか？`)) return;
+  localStorage.removeItem(LS_KEY);
+  store = loadStore();
+  syncDifficultyUI();
+  renderHome();
+  alert('全データを削除しました。');
+}
+
+function renderLastExport(){
+  const t = store.lastExportAt;
+  $('lastExportInfo').textContent = t ? `前回の書き出し：${fmtDate(t)}` : '';
+}
+
+$('exportBtn').addEventListener('click', exportData);
+$('importBtn').addEventListener('click', ()=> $('importFile').click());
+$('importFile').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(file) importFromFile(file);
+  e.target.value = '';
+});
+$('clearAllBtn').addEventListener('click', clearAllData);
+
+/* ---------- init ---------- */
+renderHome();
+renderLastExport();
+</script>
+</body>
+</html>
